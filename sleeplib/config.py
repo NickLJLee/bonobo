@@ -24,7 +24,7 @@ class Config:
     EMB_SIZE: int = 256
     HEADS: int = 8
     DEPTH: int = 4
-    N_CHANNELS: int = 18
+    N_CHANNELS: int = 37 #19+18
 
     # training parameters
     BATCH_SIZE: int = 128

@@ -8,12 +8,13 @@ import sys
 sys.path.append('../')
 
 class BonoboDataset(torch.utils.data.Dataset):
-    def __init__(self,df,path_folder, montage=None, transform=None):
+    def __init__(self,df,path_folder, bipolar_montage=None, common_average_montage=None, transform=None):
         self.df = df
         # set transform
         self.transform = transform
         # set montage
-        self.montage = montage
+        self.bipolar_montage = bipolar_montage
+        self.common_average_montage = common_average_montage
         # set path to bucket
         self.path_folder = path_folder
 
@@ -22,11 +23,14 @@ class BonoboDataset(torch.utils.data.Dataset):
 
     def _preprocess(self,signal):
         # convert to desired montage
-        if self.montage is not None:
-            signal = self.montage(signal)
+        if self.bipolar_montage is not None:
+            bipolar_signal = self.bipolar_montage(signal)
         # apply transformations
         if self.transform is not None:
-            signal = self.transform(signal)
+            bipolar_signal = self.transform(bipolar_signal)
+
+        if self.common_average_montage is not None:
+            signal = self.common_average_montage(bipolar_signal,signal)
                 
         # normalize signal
         signal = signal / (np.quantile(np.abs(signal), q=0.95, method="linear", axis=-1, keepdims=True) + 1e-8)
