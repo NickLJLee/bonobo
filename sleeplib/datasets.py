@@ -8,13 +8,15 @@ import sys
 sys.path.append('../')
 
 class BonoboDataset(torch.utils.data.Dataset):
-    def __init__(self,df,path_folder, bipolar_montage=None, common_average_montage=None, transform=None):
+    def __init__(self,df,path_folder, bipolar_montage=None, common_average_montage=None,combine_montage=None, transform_train_bipolar=None,transform_train_common_average=None):
         self.df = df
         # set transform
-        self.transform = transform
+        self.transform_train_bipolar = transform_train_bipolar
+        self.transform_train_common_average = transform_train_common_average
         # set montage
         self.bipolar_montage = bipolar_montage
         self.common_average_montage = common_average_montage
+        self.combine_montage = combine_montage
         # set path to bucket
         self.path_folder = path_folder
 
@@ -25,12 +27,22 @@ class BonoboDataset(torch.utils.data.Dataset):
         # convert to desired montage
         if self.bipolar_montage is not None:
             bipolar_signal = self.bipolar_montage(signal)
+            common_average_signal = self.common_average_montage(signal)
         # apply transformations
-        if self.transform is not None:
-            bipolar_signal = self.transform(bipolar_signal)
+        if self.transform_train_bipolar is not None:
+            #print("0Bipolar signal shape:\n", bipolar_signal.shape)
+            bipolar_signal = self.transform_train_bipolar(bipolar_signal)
+            #print("1Bipolar signal shape:\n", bipolar_signal.shape)
+        #print(self.transform_train_bipolar)
+
+        if self.transform_train_common_average is not None:    
+            #print("0Common average signal shape:\n", common_average_signal.shape)
+            common_average_signal = self.transform_train_common_average(common_average_signal)
+            #print("1Common average signal shape:\n", common_average_signal.shape)
+
 
         if self.common_average_montage is not None:
-            signal = self.common_average_montage(bipolar_signal,signal)
+            signal = self.combine_montage(bipolar_signal,common_average_signal)
                 
         # normalize signal
         signal = signal / (np.quantile(np.abs(signal), q=0.95, method="linear", axis=-1, keepdims=True) + 1e-8)

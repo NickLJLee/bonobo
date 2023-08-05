@@ -21,10 +21,10 @@ class FineTuning(LightningModule):
                     in_channels=n_channels, 
                     base_filters=64, 
                     ratio=1, 
-                    #filter_list=[64,160,160,400,400,1024,1024], 
-                    #m_blocks_list=[2,2,2,3,3,4,4], 
-                    filter_list=[64,160,160,400,400],
-                    m_blocks_list=[2,2,2,3,3],#one of the best hyperparameter
+                    filter_list=[64,160,160,400,400,1024,1024], 
+                    m_blocks_list=[2,2,2,3,3,4,4], 
+                    #filter_list=[64,160,160,400,400],
+                    #m_blocks_list=[2,2,2,3,3],#one of the best hyperparameter
                     kernel_size=16, 
                     stride=2, 
                     groups_width=16,

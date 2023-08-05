@@ -19,7 +19,7 @@ class cut_and_jitter():
 # write a pytorch transform to flip the monopolar signal, specific for CDAC data storage convention
 # input shape (n_channels=19,n_timepoints) = output shape
 class CDAC_monopolar_signal_flip():
-    def __init__(self, p=0.5):
+    def __init__(self, p=1):
         self.p = p
         # original order of mono_channels   = [‘FP1’,‘F3’,‘C3’,‘P3’,‘F7’,‘T3’,‘T5’,‘O1’,
         #                                      ‘FZ’,‘CZ’,‘PZ’,
@@ -34,7 +34,7 @@ class CDAC_monopolar_signal_flip():
 # write a pytorch transform to flip the monopolar signal, specific for CDAC data storage convention\
 # input shape (n_channels=18,n_timepoints) = output shape
 class CDAC_bipolar_signal_flip():
-    def __init__(self, p=0.5):
+    def __init__(self, p=1):
         self.p = p
         # original order of biploar channels := ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 
         #                                        'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2', 
