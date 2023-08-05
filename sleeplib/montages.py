@@ -12,14 +12,17 @@ class CDAC_bipolar_montage():
 
         self.bipolar_ids = np.array([[mono_channels.index(bc.split('-')[0]), mono_channels.index(bc.split('-')[1])] for bc in bipolar_channels])
 
+        self.average_ids = [mono_channels.index(ch.split('-')[0]) for ch in channel_average]
+
     def __call__(self, signal):
         # Bipolar Montage
         bipolar_signal = signal[self.bipolar_ids[:, 0]] - signal[self.bipolar_ids[:, 1]]
 
         # Common Average Montage
-        common_average_signal = signal - np.mean(signal, axis=0)
+        common_average_signal = signal[self.average_ids] - np.mean(signal[self.average_ids], axis=0)
 
-        # 将两个montage合并在一起
+
+        # combined signal
         combined_signal = np.vstack([bipolar_signal, common_average_signal])
 
         return combined_signal
