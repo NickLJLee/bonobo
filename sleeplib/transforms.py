@@ -16,10 +16,77 @@ class cut_and_jitter():
         start = start + int(np.random.uniform(-1, 1)*self.max_offset)
         return signal[:,start:start+self.windowsize]
 
+
+class channel_flip():
+    def __init__(self, p, channels, montage):
+        self.p = p
+        # get flipped order of channel strings
+        if montage == 'CDAC_monopolar_montage':
+            channels_flipped = self._monopolar_flipper(channels)
+        elif montage == 'CDAC_bipolar_montage':
+            channels_flipped = self._bipolar_flipper(channels)
+        elif montage == 'CDAC_psg_montage':
+            channels_flipped = self._bipolar_flipper(channels)
+        else:
+            print('ERROR: montage notfound!')
+        # convert strings to indices, this is later applied to the signal
+        self.flipped_order = [channels.index(flipped_channel) for flipped_channel in channels_flipped]
+        # print output to check
+        print('used channels:    '+ str(channels))
+        print('flipped channels: '+ str(channels_flipped))
+
+    def _flip_channel(self,channel):
+        '''
+        this function flips a channel string, e.g. Fp1 -> Fp2, F3 -> F4, etc.
+        Central channels are kept in place, e.g. Fz -> Fz
+        '''
+        loc = channel[-1]
+        # keep central channels in place
+        if loc == 'z':
+            return channel
+        # flip all other channels
+        else: loc = int(loc)
+        if loc % 2 ==1: # +1 all uneven channels. Fp1 -> Fp2, F3 -> F4, etc.
+            loc +=1
+        else: # -1 all even channels. Fp2 -> Fp1, F4 -> F3,etc.
+            loc -= 1
+        # recompose channel string
+        channel = channel[:-1] + str(loc)
+        return channel
+
+    def _monopolar_flipper(self,channels):
+        ''' flip all channels in a list of monopolar channels'''
+        channels_flipped = []
+        for channel in channels:
+            channel = self._flip_channel(channel)
+            channels_flipped.append(channel)
+        return channels_flipped
+       
+    def _bipolar_flipper(self,channels):
+        ''' for both channels in bipolar channel, flip them separately
+        keeps zentral in place '''
+        channels_flipped = []
+        for bipolar_channel in channels:
+            numbers = [int(x) for x in bipolar_channel if x.isdigit()]
+            # dont flip if channel does not contain numbers (e.g. Fz-Cz, etc.)
+            # dont flip if sum of channel numbers is uneven (e.g. Fp1-F3, C3-C4, etc.)
+            if (sum(numbers)==0) | (sum(numbers)%2==1):
+                channels_flipped.append(bipolar_channel)
+            else:
+                channel1, channel2 = bipolar_channel.split('-')
+                channel1, channel2 = self._flip_channel(channel1), self._flip_channel(channel2)
+                channels_flipped.append(channel1+'-'+channel2) # recomposebipolar channel
+        return channels_flipped
+   
+    def __call__(self, signal):
+        # if random number is smaller than p, flip channels
+        if np.random.random() < self.p:
+            signal = signal[self.flipped_order,:]
+        return signal
 # write a pytorch transform to flip the monopolar signal, specific for CDAC data storage convention
 # input shape (n_channels=19,n_timepoints) = output shape
 class CDAC_monopolar_signal_flip():
-    def __init__(self, p=1):
+    def __init__(self, p):
         self.p = p
         # original order of mono_channels   = [‘FP1’,‘F3’,‘C3’,‘P3’,‘F7’,‘T3’,‘T5’,‘O1’,
         #                                      ‘FZ’,‘CZ’,‘PZ’,
@@ -34,7 +101,7 @@ class CDAC_monopolar_signal_flip():
 # write a pytorch transform to flip the monopolar signal, specific for CDAC data storage convention\
 # input shape (n_channels=18,n_timepoints) = output shape
 class CDAC_bipolar_signal_flip():
-    def __init__(self, p=1):
+    def __init__(self, p):
         self.p = p
         # original order of biploar channels := ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 
         #                                        'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2', 

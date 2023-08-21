@@ -39,3 +39,43 @@ class WeightedFocalLoss(nn.Module):
             F_loss = at*(1-pt)**self.gamma * BCE_loss        
             return F_loss.mean()
 
+
+class GHM_Loss(nn.Module):
+    def __init__(self, bins=10, alpha=.75):
+        super(GHM_Loss, self).__init__()
+        self._bins = bins
+        self._alpha = alpha
+        self._last_bin_count = None
+
+    def _g2bin(self, g):
+        # split to n bins
+        return torch.floor(g * (self._bins - 0.0001)).long()
+
+
+    def forward(self, x, target):
+        # compute value g
+        g = torch.abs(self._custom_loss_grad(x, target)).detach()
+
+        bin_idx = self._g2bin(g)
+
+        bin_count = torch.zeros((self._bins))
+        for i in range(self._bins):
+            # 计算落入bins的梯度模长数量
+            bin_count[i] = (bin_idx == i).sum().item()
+
+        N = (x.size(0) * x.size(1))
+
+        if self._last_bin_count is None:
+            self._last_bin_count = bin_count
+        else:
+            bin_count = self._alpha * self._last_bin_count + (1 - self._alpha) * bin_count
+            self._last_bin_count = bin_count
+
+        nonempty_bins = (bin_count > 0).sum().item()
+
+        gd = bin_count * nonempty_bins
+        gd = torch.clamp(gd, min=0.0001)
+        beta = N / gd  # 计算好样本的gd值
+
+        # 借由binary_cross_entropy_with_logits,gd值当作参数传入
+        return F.binary_cross_entropy_with_logits(x, target, weight=beta[bin_idx])

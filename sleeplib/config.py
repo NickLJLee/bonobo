@@ -6,8 +6,8 @@ from dataclasses import dataclass
 class Config:
 
     # Data params
-    PATH_FILES_BONOBO: str = '/home/ubuntu/data/bonobo/npy/'
-    PATH_LUT_BONOBO: str = '/home/ubuntu/code/Spike_transformer/lut_labelled_20230628.csv'
+    PATH_FILES_BONOBO: str = '/home/ubuntu/data/bonobo/npy/' #'/home/ubuntu/data/bonobo/pseudo/'
+    PATH_LUT_BONOBO: str = '/home/ubuntu/code/Spike_37chan/lut_labelled_20230628.csv' #'pseudo.csv'
     PATH_CONTINOUS_EEG: str = '/bdsp/staging/Bonobo/Datasets/continuousEEG'
 
     FQ: int = 128 # Hz
@@ -27,8 +27,8 @@ class Config:
     N_CHANNELS: int = 37 #19+18
 
     # training parameters
-    BATCH_SIZE: int = 128
-    LR: float = 1e-4
+    BATCH_SIZE: int = 128 #test 128
+    LR: float = 1e-4 #test 1e-4
 
     def print_config(self):
         print('THIS CONFIG FILE CONTAINS THE FOLLOWING PARAMETERS :\n')
