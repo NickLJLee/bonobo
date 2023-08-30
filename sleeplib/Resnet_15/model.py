@@ -15,16 +15,16 @@ class_weights = torch.from_numpy(weights_num).float().to(torch.device('cuda:{}'.
 
 
 class FineTuning(LightningModule):
-    def __init__(self,lr,head_dropout=0.3, emb_size=128,n_channels=37, **kwargs):
+    def __init__(self,lr,n_channels=37, **kwargs):
         super().__init__()
         self.lr = lr
-        # create the BIOT encoder
+
         self.model = Net1D(
                     in_channels=n_channels, 
                     base_filters=64, 
                     #base_filters=32, 
                     ratio=1, 
-                    #filter_list = [64,128,128,160,160,256,256],#best hyperparameter
+                    #filter_list = [64,128,128,160,160,256,256],#
                     filter_list=[64,160,160,400,400,1024,1024], 
                     m_blocks_list=[2,2,2,3,3,4,4], 
                     kernel_size=16, 
@@ -32,9 +32,9 @@ class FineTuning(LightningModule):
                     groups_width=16,
                     verbose=False, 
                     use_bn=True,
-                    n_classes=1 #soft target
+                    #n_classes=1, #soft target
+                    n_classes=1 #hard target
         )
-        
 
     def forward(self, x):
         x = self.model(x)
@@ -77,4 +77,5 @@ class FineTuning(LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        #optimizer = torch.optim.SGD(self.parameters(), lr=self.lr)
         return optimizer

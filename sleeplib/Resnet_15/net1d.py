@@ -7,7 +7,7 @@ Shenda Hong, Mar 2020
 import numpy as np
 from collections import Counter
 from matplotlib import pyplot as plt
-
+import torch.nn.init as init
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -370,6 +370,20 @@ class Net1D(nn.Module):
         # final prediction
         self.dense = nn.Linear(in_channels, n_classes)
         
+    def _initialize_weights(self):
+      for m in self.modules():
+        if isinstance(m, nn.Conv1d):
+            init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                m.bias.data.zero_()
+        elif isinstance(m, MyConv1dPadSame):
+            init.xavier_uniform_(m.conv.weight)
+            if m.conv.bias is not None:
+                m.conv.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            init.xavier_uniform_(m.weight)
+            m.bias.data.zero_()
+
     def forward(self, x):
         
         out = x

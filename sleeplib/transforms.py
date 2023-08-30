@@ -18,21 +18,37 @@ class cut_and_jitter():
 
 
 class channel_flip():
-    def __init__(self, p, channels, montage):
+    def __init__(self, p):
         self.p = p
-        # get flipped order of channel strings
-        if montage == 'CDAC_monopolar_montage':
-            channels_flipped = self._monopolar_flipper(channels)
-        elif montage == 'CDAC_bipolar_montage':
-            channels_flipped = self._bipolar_flipper(channels)
-        elif montage == 'CDAC_psg_montage':
-            channels_flipped = self._bipolar_flipper(channels)
-        else:
-            print('ERROR: montage notfound!')
-        # convert strings to indices, this is later applied to the signal
-        self.flipped_order = [channels.index(flipped_channel) for flipped_channel in channels_flipped]
+
+        # Predefine the channels
+        monopolar_channels = ['FP1','F3','C3','P3','F7','T3','T5','O1',
+                              'FZ','CZ','PZ',
+                              'FP2','F4','C4','P4','F8','T4','T6','O2']
+        bipolar_channels = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 
+                            'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2', 
+                            'Fp1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 
+                            'Fp2-F4', 'F4-C4', 'C4-P4', 'P4-O2',
+                            'Fz-Cz', 'Cz-Pz']
+        channel_average = ['Fp1-avg','F3-avg','C3-avg','P3-avg','F7-avg','T3-avg','T5-avg','O1-avg','Fz-avg','Cz-avg','Pz-avg','Fp2-avg','F4-avg','C4-avg','P4-avg','F8-avg','T4-avg','T6-avg','O2-avg']#19
+
+        channels_flipped = []
+        
+
+        # Handle monopolar montage
+        channels_flipped.extend(self._bipolar_flipper(bipolar_channels))
+        print('combine_montage!')
+        # Handle bipolar montage
+        channels_flipped.extend(self._monopolar_flipper(monopolar_channels))
+        
+        # Consolidate all the channels
+        all_channels = bipolar_channels + monopolar_channels
+        print('flipped channels: '+ str(channels_flipped))
+        # Convert strings to indices, this is later applied to the signal
+        self.flipped_order = [all_channels.index(flipped_channel) for flipped_channel in channels_flipped]
+
         # print output to check
-        print('used channels:    '+ str(channels))
+        print('used channels:    '+ str(all_channels))
         print('flipped channels: '+ str(channels_flipped))
 
     def _flip_channel(self,channel):
@@ -42,7 +58,7 @@ class channel_flip():
         '''
         loc = channel[-1]
         # keep central channels in place
-        if loc == 'z':
+        if loc.lower() == 'z':
             return channel
         # flip all other channels
         else: loc = int(loc)
@@ -60,6 +76,8 @@ class channel_flip():
         for channel in channels:
             channel = self._flip_channel(channel)
             channels_flipped.append(channel)
+
+        print(1)    
         return channels_flipped
        
     def _bipolar_flipper(self,channels):
@@ -76,12 +94,14 @@ class channel_flip():
                 channel1, channel2 = bipolar_channel.split('-')
                 channel1, channel2 = self._flip_channel(channel1), self._flip_channel(channel2)
                 channels_flipped.append(channel1+'-'+channel2) # recomposebipolar channel
+        #print(channels_flipped)    
         return channels_flipped
    
     def __call__(self, signal):
         # if random number is smaller than p, flip channels
         if np.random.random() < self.p:
             signal = signal[self.flipped_order,:]
+            #print(signal.shape)
         return signal
 # write a pytorch transform to flip the monopolar signal, specific for CDAC data storage convention
 # input shape (n_channels=19,n_timepoints) = output shape

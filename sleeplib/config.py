@@ -7,7 +7,7 @@ class Config:
 
     # Data params
     PATH_FILES_BONOBO: str = '/home/ubuntu/data/bonobo/npy/' #'/home/ubuntu/data/bonobo/pseudo/'
-    PATH_LUT_BONOBO: str = '/home/ubuntu/code/Spike_37chan/lut_labelled_20230628.csv' #'pseudo.csv'
+    PATH_LUT_BONOBO: str = '/home/ubuntu/code/Spike_37chan/soft_label.csv' #'lut_labelled_20230628.csv'
     PATH_CONTINOUS_EEG: str = '/bdsp/staging/Bonobo/Datasets/continuousEEG'
 
     FQ: int = 128 # Hz
@@ -15,7 +15,7 @@ class Config:
     
     # Preprocessing 
     MONTAGE: str = 'bipolar'
-    WINDOWSIZE: int = 1 # seconds
+    WINDOWSIZE: float = 3 # 1 seconds
     
 	# Model parameters
     N_FFT: int = 128
